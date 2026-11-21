@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>StarBench · 星穹旅驿等效负载在线跑分</title>
+  <meta name="description" content="StarBench 星穹旅驿一键等效负载跑分 Web 版：真实 WebGL 体素引擎逐帧渲染，在线测峰值/平均/1% Low。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236ea8ff'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">✦</span>
+      <div>
+        <div class="title">StarBench <span>星穹旅驿</span></div>
+        <div class="subtitle">我的世界等效负载 · 在线一键跑分</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge">WebGL 实时渲染</span>
+      <span class="badge">v0.3.0-web</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <canvas id="gl"></canvas>
+      <div class="stage-overlay">
+        <div class="hud">
+          <div class="hud-item"><span class="hud-label">状态</span><span id="hudPhase" class="hud-val">待机</span></div>
+          <div class="hud-item"><span class="hud-label">实时帧率</span><span id="hudFps" class="hud-val">-- FPS</span></div>
+          <div class="hud-item"><span class="hud-label">运算量</span><span id="hudWork" class="hud-val">0</span></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+          <div id="statusText" class="status-text">点击下方按钮开始在线跑分</div>
+        </div>
+      </div>
+      <div id="glError" class="gl-error" hidden></div>
+    </section>
+
+    <aside class="panel">
+      <div class="notice">
+        <div class="notice-title">ⓘ 温度告知与合规声明</div>
+        <ul>
+          <li>浏览器无法读取 SoC 结温 / thermal headroom，相关项一律显示 <b>unavailable</b>，不锁频、不提频、不对抗温控。</li>
+          <li>本页为<b>自绘体素场景</b>，用于等效负载测试，<b>非《我的世界》官方客户端</b>，未宣称 1:1 还原，不含任何官方美术资源。</li>
+          <li>跑分过程中请保持页面在前台，切换到后台会导致浏览器降帧，影响结果。</li>
+        </ul>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-primary">▶ 开始一键跑分</button>
+        <button id="stopBtn" class="btn btn-ghost" disabled>■ 停止</button>
+      </div>
+
+      <div class="flow">
+        <div class="flow-title">测试流程</div>
+        <ol>
+          <li>预热 · 构建世界 <span>1.6s</span></li>
+          <li>Java Edition · 3 场景 <span>7.8s</span></li>
+          <li>冷却判定（仅观测） <span>1.2s</span></li>
+          <li>Bedrock Edition · 3 场景 <span>7.8s</span></li>
+          <li>输出峰值 / 平均 / 1% Low 三套分数</li>
+        </ol>
+      </div>
+
+      <div id="report" class="report" hidden>
+        <div class="report-title">跑分报告</div>
+        <div id="reportBody"></div>
+        <div class="report-actions">
+          <button id="copyBtn" class="btn btn-small">复制报告</button>
+          <button id="downloadBtn" class="btn btn-small">下载 JSON</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <span>StarBench · ChaosSurvivalProject · Apache-2.0</span>
+    <a href="https://github.com/ChaosSurvivalProject/StarBench" target="_blank" rel="noopener">GitHub 仓库</a>
+  </footer>
+
+  <script src="js/voxel.js"></script>
+  <script src="js/textures.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/bench.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
