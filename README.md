@@ -1,8 +1,25 @@
 # StarBench · 星穹旅驿一键等效负载跑分
 
-> **星穹旅驿官方出品** · Android 平台「我的世界等效负载」一键自动跑分 App 的**工程骨架与核心接口契约**。
+> **星穹旅驿官方出品** · Android 平台「我的世界等效负载」一键自动跑分 App。
 
-本仓库是依据产品需求提示词落地的**可编译工程骨架**：它定义了完整的模块边界、核心接口签名、一键状态机、计分/建议/报告的数据契约，以及双引擎（Java / Bedrock）各自的独立实现入口。**运行时的高保真体素渲染与逐 Tick 世界运算属于后续实现工作**；凡公开资料不足的细节，均在代码中以 `待验证 / 设计建议` 显式标注，绝不编造 API 名、版本号或具体数值。
+## ✅ 可下载 APK（基于 Android 9）
+
+本仓库提供**真实可安装的 APK**，直接用浏览器打开下表的 GitHub Release 链接即可下载，传到 Android 9 设备安装：
+
+| 版本 | 说明 | 下载 |
+|---|---|---|
+| v0.2.0-android9-release | 正式签名版（推荐） | 见仓库 [Releases](https://github.com/ChaosSurvivalProject/StarBench/releases) 页 |
+| v0.2.0-android9 | Debug 版（含调试信息） | 见仓库 [Releases](https://github.com/ChaosSurvivalProject/StarBench/releases) 页 |
+
+- 包名 `com.xqly.starbench`，`minSdk 21`（Android 5.0+）、**`targetSdk 28`（Android 9）**。
+- 本地文件也可在 `downloads/` 目录找到，SHA-256 见 [downloads/SHA256SUMS.txt](../downloads/SHA256SUMS.txt)。
+- 安装：允许「安装未知来源应用」后点击 APK；或 `adb install StarBench-v0.2.0-android9-release.apk`。
+
+> **诚实声明（重要）**：这是一个**真实可运行的等效负载基线版**——世界生成、光照传播、实体推进、网格构建都是逐帧真实计算，画面由 OpenGL ES 2.0 逐帧渲染（非视频/截图/预录帧），CPU/温度/帧耗时为真实采集。**但它尚未达到「1:1 还原我的世界」的硬验收**：画面为 clean-room 自绘体素场景，未使用也未包含任何官方美术资源。报告页会如实标注这一点。
+>
+> **Android 9 的平台事实**：`PerformanceHintManager`(API 31+) 与 Thermal API(API 29+) 在 Android 9 上不存在，因此 thermal headroom / ADPF 提频提示在报告中标 `unavailable`，未做忙等提频、锁频或绕过温控；温度取自电池温度计（整机口径）。
+
+本仓库同时保留依据产品提示词落地的**完整工程骨架与核心接口契约**（模块边界、`VisualParitySpec`、`AssetPack`、一键状态机、计分/建议/报告数据契约、双引擎独立实现入口）。凡公开资料不足的细节，均以 `待验证 / 设计建议` 标注，不编造 API 名、版本号或具体数值。
 
 > 本工程**不是** Mojang / Microsoft 官方产品，未获其授权或认可。默认仅走**路径 A（clean-room 独立重绘）**，发布包内不含任何官方代码、贴图、模型、音效或商标标识。
 

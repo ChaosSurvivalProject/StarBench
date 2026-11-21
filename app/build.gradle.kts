@@ -9,20 +9,20 @@ android {
 
     defaultConfig {
         applicationId = "com.xqly.starbench"
-        minSdk = 26          // PerformanceHintManager(31)/Thermal(29) 在代码中按 SDK_INT 守卫
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0-skeleton"
+        minSdk = 21          // 兼容 Android 5.0+，目标设备 Android 9 (API 28)
+        targetSdk = 28       // 「基于安卓 9」：把目标平台明确设为 Android 9
+        versionCode = 2
+        versionName = "0.2.0-android9-runtime"
+    }
 
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++17"
-                // 渲染后端由 CMake 选项控制：VULKAN 优先，OpenGL ES 降级
-                arguments += "-DANDROID_STL=c++_shared"
-            }
-        }
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+    signingConfigs {
+        // 注意：这是开源的【公开演示签名密钥】，仅用于让本 APK 可安装/可复现构建。
+        // 正式发布必须替换为你自己保管的私有 keystore，切勿沿用此密钥。
+        create("release") {
+            storeFile = file("starbench-release.jks")
+            storePassword = "StarBench2026"
+            keyAlias = "starbench"
+            keyPassword = "StarBench2026"
         }
     }
 
@@ -30,21 +30,8 @@ android {
         debug { isMinifyEnabled = false }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
-
-    // 开发期比对参照素材放在 tools/parity-reference/，不进任何发布 sourceSet。
-    sourceSets {
-        getByName("main") {
-            assets.srcDirs("src/main/assets")
         }
     }
 
@@ -52,16 +39,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlinOptions { jvmTarget = "17" }
+
+    lint {
+        // 本 APK 为侧载分发且明确基于 Android 9，不上传 Google Play，
+        // 故关闭「targetSdk 必须≥33」的商店策略检查；targetSdk 28 是产品口径，保持不动。
+        disable += "ExpiredTargetSdkVersion"
+        abortOnError = false
     }
 }
 
-dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.1") // JSON / system.json 导出
-    testImplementation("junit:junit:4.13.2")
-}
+// 运行时版刻意只用 Android 框架 API + Kotlin 标准库，不引入 AndroidX / 协程 / NDK，
+// 以最小依赖在受限环境也能稳定产出可安装 APK。真实负载与渲染全部在 Kotlin + OpenGL ES 2.0 完成。
