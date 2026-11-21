@@ -1,0 +1,37 @@
+name: release-gate
+
+# 发布门禁（需求 5.4 / 第 12 节验收项 10）：
+# Spec 版本或资源包哈希变化必须重跑视觉回归；未授权路径 B 不得出包。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  authorization-and-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 拒绝入库官方资产与参照素材
+        run: |
+          set -e
+          if find . -path ./tools/parity-reference -prune -o \
+             -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.ogg' \) -print | grep -v 'assets/packA'; then
+            echo "::error::发现 packA 之外的二进制资产，请人工核对是否官方资源"; exit 1
+          fi
+          test ! -d tools/parity-reference || { echo "参照素材不得入库"; exit 1; }
+
+      - name: 视觉对齐门禁（设计占位）
+        run: |
+          echo "实现期在此：提取 VisualParitySpec 版本与资源包哈希，"
+          echo "与基线比对；变化则重跑对齐清单，未通过 exit 1。"
+
+      - name: 授权凭证门禁（设计占位）
+        run: |
+          echo "实现期在此：模式 A 时 system.json.authorizationCredentialId 必须为空；"
+          echo "模式 B 时必须非空且匹配构建环境归档凭证，否则 exit 1。"
+
+      - name: 静态编译检查（需 Android SDK）
+        if: false
+        run: ./gradlew :app:assembleRelease
