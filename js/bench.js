@@ -30,7 +30,7 @@
     }
 
     _warmupWorld() {
-      const w = new SB.VoxelWorld(20, 20, 20, this._seed, 8);
+      const w = new SB.VoxelWorld(2, 40, this._seed, 24, 3, 3);
       w.regenerate(); w.buildMesh();
       this.world = w;
       this.renderer.upload(w);
@@ -73,9 +73,10 @@
     _startCase() {
       const cfg = SB.EditionConfig[this.currentEdition];
       const c = cfg.cases[this._phaseIdx];
-      const size = c.size;
-      const w = new SB.VoxelWorld(size, size, 22, this._seed + this._phaseIdx * 17, c.entities);
+      const w = new SB.VoxelWorld(c.chunks, c.height, this._seed + this._phaseIdx * 17,
+        c.mobCap, c.viewDist, c.simDist);
       w.regenerate(); w.buildMesh();
+      w._rebuildPerFrame = c.rebuild;
       this.world = w;
       this.renderer.upload(w);
       this._caseWorkStart = w.workCounter;
@@ -116,7 +117,7 @@
       this.advice = SB.Scoring.advice(this.scores);
       const report = {
         app: 'StarBench Web',
-        version: '0.3.0-web',
+        version: '0.4.0-web',
         timestamp: new Date().toISOString(),
         platform: (navigator.userAgent || ''),
         params: { warmupMs: WARMUP_MS, caseMs: CASE_MS, cooldownMs: COOLDOWN_MS },
@@ -127,7 +128,7 @@
         scores: this.scores,
         advice: this.advice,
         unavailable: ['CPU 占用率', 'SoC 结温', 'thermal headroom', 'ADPF PerformanceHintManager', '锁频/提频对抗'],
-        boundary: '等效负载测试；自绘体素场景；非官方客户端；未宣称 1:1 还原。',
+        boundary: '等效负载测试；64x64 区块 + 群系 + pack 刷怪 + 22i GPL-3.0 生物模型；非官方客户端。',
       };
       this._emit('DONE', '跑分完成', 100);
       if (this.hooks.onReport) this.hooks.onReport(report);
@@ -142,7 +143,11 @@
       dt = Math.min(0.25, dt);
       const elapsed = now - this._phaseStart;
 
-      if (this.world) { this.world.tickEntities(dt, true); this.renderer.draw(dt); }
+      if (this.world) {
+        this.world.tickEntities(dt, true);
+        if (this.world._rebuildPerFrame) this.world.rebuildSections(this.world._rebuildPerFrame);
+        this.renderer.draw(dt);
+      }
 
       const fps = 1 / Math.max(1e-6, dt);
       const work = this.world ? this.world.workCounter : 0;

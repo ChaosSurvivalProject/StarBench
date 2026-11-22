@@ -37,4 +37,27 @@
     return cv;
   }
   SB.buildAtlas = buildAtlas;
+
+  // 动物图集：来自 22i/minecraft-voxel-blender-models（GPL-3.0）的 6 张 64×32 UV 贴图烘焙
+  const MW = 64, MH = 32, MCOLS = SB.MOB_ATLAS_COLS || 4, MROWS = SB.MOB_ATLAS_ROWS || 2;
+  SB.mobAtlasReady = false;
+  SB.onMobAtlasReady = null;
+  function buildMobAtlas() {
+    const cv = document.createElement("canvas");
+    cv.width = MCOLS * MW; cv.height = MROWS * MH;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#8899aa";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    const img = new Image();
+    img.onload = function () {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      SB.mobAtlasReady = true;
+      if (typeof SB.onMobAtlasReady === "function") SB.onMobAtlasReady();
+    };
+    img.onerror = function () { SB.mobAtlasReady = false; };
+    img.src = "textures/mobatlas.png";
+    return cv;
+  }
+  SB.buildMobAtlas = buildMobAtlas;
 })(typeof window !== "undefined" ? window : globalThis);

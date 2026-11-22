@@ -47,21 +47,23 @@
   };
   SB.FrameStats = FrameStats;
 
+  // 每个场景由 64×64 区块构成；chunks 为边长区块数，view/sim 距离按 ref 分离。
+  // mobCap 按 creature cap 随区块数缩放（ref §四），并放大以形成真实压力。
   const EditionConfig = {
     JAVA: {
       label: 'Java Edition',
       cases: [
-        { label: '视距 4 · 低负载', size: 24, entities: 12, rebuild: 1 },
-        { label: '视距 8 · 中负载', size: 32, entities: 20, rebuild: 2 },
-        { label: '视距 12 · 高负载', size: 40, entities: 28, rebuild: 3 },
+        { label: '视距 3 · 低负载 · 4 区块', chunks: 2, height: 48, mobCap: 30, viewDist: 3, simDist: 3, rebuild: 3 },
+        { label: '视距 4 · 中负载 · 9 区块', chunks: 3, height: 56, mobCap: 54, viewDist: 4, simDist: 4, rebuild: 4 },
+        { label: '视距 5 · 高负载 · 16 区块', chunks: 4, height: 64, mobCap: 84, viewDist: 5, simDist: 5, rebuild: 6 },
       ],
     },
     BEDROCK: {
       label: 'Bedrock Edition',
       cases: [
-        { label: '模拟距离 4 · 低负载', size: 22, entities: 10, rebuild: 1 },
-        { label: '模拟距离 8 · 中负载', size: 30, entities: 18, rebuild: 2 },
-        { label: '模拟距离 12 · 高负载', size: 38, entities: 26, rebuild: 3 },
+        { label: '模拟距离 4 · 低负载 · 4 区块', chunks: 2, height: 48, mobCap: 28, viewDist: 4, simDist: 4, rebuild: 3 },
+        { label: '模拟距离 8 · 中负载 · 9 区块', chunks: 3, height: 56, mobCap: 50, viewDist: 8, simDist: 6, rebuild: 4 },
+        { label: '模拟距离 12 · 高负载 · 16 区块', chunks: 4, height: 64, mobCap: 78, viewDist: 12, simDist: 8, rebuild: 6 },
       ],
     },
   };

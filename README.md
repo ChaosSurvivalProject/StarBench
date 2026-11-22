@@ -4,6 +4,8 @@
 >
 > **在线地址**：<https://chaos-survival-project.github.io/StarBench/>
 >
+> **v0.4.0（当前）**：世界升级为 **64×64 区块**，加入**确定性群系 + pack 刷怪 + mob cap + 16³ 区块段重建**，并接入 [22i 的 1:1 Minecraft 生物体素模型（GPL-3.0）](https://github.com/22i/minecraft-voxel-blender-models)——牛、猪、羊、鸡、狼按群系生成、带 UV 贴图与步态动画，压力显著提升。
+>
 > **v0.3.0**：画面材质升级为 [Faithful 64x](https://faithfulpack.net) 开源贴图（64×64 方块纹理，草/叶/水按 Minecraft 生物群系 colormap 着色），与 Android APK 同步更新。3D 场景与 2D 显示画布使用同一套材质。
 
 ## 它是什么
@@ -30,10 +32,12 @@
 |---|---|
 | `index.html` | 页面结构：画布、HUD、告知卡、报告 |
 | `css/style.css` | 响应式布局与深色主题 |
-| `js/voxel.js` | 体素引擎：地形/光照/实体/面剔除网格 |
-| `js/textures.js` | Faithful 64x 贴图加载（4×3 图集，异步加载 + 纹理重传） |
+| `js/voxel.js` | 体素引擎：64×64 区块、群系噪声、天空光、pack 刷怪、16³ 段重建、面剔除网格 |
+| `js/mobdata.js` | 22i 生物模型数据（顶点/UV/三角形，GPL-3.0） |
+| `js/textures.js` | Faithful 方块图集 + 动物图集加载（异步 + 纹理重传） |
 | `textures/atlas64.png` | Faithful 64x 方块贴图烘焙图集（256×192） |
-| `js/renderer.js` | WebGL 1.0 渲染器：着色器、相机、雾、绘制 |
+| `textures/mobatlas.png` | 22i 生物 UV 贴图烘焙图集（256×64，GPL-3.0） |
+| `js/renderer.js` | WebGL 1.0 渲染器：地形 + 动物两套程序、相机、雾、绘制 |
 | `js/scoring.js` | 计分口径与改进建议 |
 | `js/bench.js` | 一键状态机 |
 | `js/main.js` | 交互与报告导出 |
@@ -59,6 +63,10 @@ python3 -m http.server 8899
 
 本项目渲染画面使用了 [Faithful 64x](https://faithfulpack.net) 资源包中的方块贴图（草、泥土、石头、橡木、树叶、水、沙子）。Faithful 是开源社区项目，依据 [Faithful License](THIRD_PARTY_LICENSES.txt) 使用。材质取自官方仓库 [Faithful-Resource-Pack/Faithful-Java-64x](https://github.com/Faithful-Resource-Pack/Faithful-Java-64x)，草顶/树叶/水在原灰度贴图上按 Minecraft 生物群系 colormap 着色。本项目非 Mojang / Microsoft 官方产品，未获其授权或认可。
 
+### 动物模型署名（GPL-3.0）
+
+牛、猪、羊、鸡、狼的体素模型来自 [22i/minecraft-voxel-blender-models](https://github.com/22i/minecraft-voxel-blender-models)（**GPL-3.0**）。真实 `.b3d` 模型的顶点 / UV / 三角索引经导出烘焙为 `js/mobdata.js` + `textures/mobatlas.png`。该模型是社区 1:1 复刻（Mineclonia / MineClone2 生物模型同源），**非 Mojang / Microsoft 官方美术**。依据 GPL-3.0，保留原版权声明与许可全文（见 `THIRD_PARTY_LICENSES.txt`），源码见上方 Source URL。
+
 ## 许可
 
-站点代码 Apache-2.0 · ChaosSurvivalProject；Faithful 64x 材质见 `THIRD_PARTY_LICENSES.txt`。
+站点代码 Apache-2.0 · ChaosSurvivalProject；Faithful 64x 与 GPL-3.0 动物模型的第三方许可见 `THIRD_PARTY_LICENSES.txt`。
