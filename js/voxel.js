@@ -211,7 +211,7 @@
     buildMesh() {
       const { sx, sz, h } = this;
       const pos = [], uv = [], lig = [];
-      const eps = 0.5 / (ATLAS_COLS * 16); // 半像素，防瓦片渗色
+      const eps = 0.5 / (ATLAS_COLS * 64); // 半像素，防瓦片渗色（Faithful 64x 瓦片）
       const pushFace = (x, y, z, face, b, lightVal) => {
         const tileInfo = TILE[b] || TILE[Block.STONE];
         const tile = tileInfo[face.tile] != null ? tileInfo[face.tile] : tileInfo.side;

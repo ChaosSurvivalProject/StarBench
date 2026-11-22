@@ -3,13 +3,15 @@
 > 打开网页即可在线跑分的 Web 版，与 [Android 版 APK](https://github.com/ChaosSurvivalProject/StarBench/releases/tag/v0.2.0-android9) 共用同一套「真实计算 + 三套计分 + 诚实边界」口径。
 >
 > **在线地址**：<https://chaos-survival-project.github.io/StarBench/>
+>
+> **v0.3.0**：画面材质升级为 [Faithful 64x](https://faithfulpack.net) 开源贴图（64×64 方块纹理，草/叶/水按 Minecraft 生物群系 colormap 着色），与 Android APK 同步更新。3D 场景与 2D 显示画布使用同一套材质。
 
 ## 它是什么
 
 一个**真实运行的 WebGL 体素引擎跑分页**，不是图片轮播、不是预录视频、不是随机数/sleep 伪造负载：
 
 - **真实体素世界**：确定性噪声地形、天空光 BFS 传播、实体逐帧推进、逐面剔除网格构建，全部在浏览器里逐帧计算。工作量随视距场景增长（实测小世界约 5 万 → 大世界约 16 万运算计数）。
-- **真实渲染**：WebGL 1.0 从当帧网格绘制，固定运镜脚本，程序化自产贴图图集（无任何官方美术资源），天空与距离雾。渲染结果每帧拷贝到一个可见的 2D 显示画布，规避部分浏览器/GPU 上 WebGL 画布不参与页面合成导致"看不到画面"的问题。
+- **真实渲染**：WebGL 1.0 从当帧网格绘制，固定运镜脚本，采用 **Faithful 64x 开源材质**（离屏烘焙成 4×3 图集，叶片 alpha 镂空），天空与距离雾。渲染结果每帧拷贝到一个可见的 2D 显示画布，规避部分浏览器/GPU 上 WebGL 画布不参与页面合成导致"看不到画面"的问题。3D 场景与 2D 显示用的是同一套 Faithful 材质。
 - **真实采集**：帧耗时来自 `requestAnimationFrame` 真实间隔。
 - **一键流程**：预热 → Java 三场景 → 冷却判定 → Bedrock 三场景 → 报告。
 - **三套独立计分**：峰值窗口 / 调和平均 / 1% Low，另附 0.1% Low、p99、Jank 率与分版本改进建议；报告可在页面复制或下载 JSON。
@@ -29,7 +31,8 @@
 | `index.html` | 页面结构：画布、HUD、告知卡、报告 |
 | `css/style.css` | 响应式布局与深色主题 |
 | `js/voxel.js` | 体素引擎：地形/光照/实体/面剔除网格 |
-| `js/textures.js` | 程序化贴图图集（4×3，12 瓦片） |
+| `js/textures.js` | Faithful 64x 贴图加载（4×3 图集，异步加载 + 纹理重传） |
+| `textures/atlas64.png` | Faithful 64x 方块贴图烘焙图集（256×192） |
 | `js/renderer.js` | WebGL 1.0 渲染器：着色器、相机、雾、绘制 |
 | `js/scoring.js` | 计分口径与改进建议 |
 | `js/bench.js` | 一键状态机 |
@@ -52,6 +55,10 @@ python3 -m http.server 8899
 - Chromium + WebGL 端到端：六场景流程走完，进度 8%→100%，报告正常生成，控制台无错误、无 404。
 - 像素采样 + canvas 导出：确认体素地形（草地/泥土/树叶/树木/天空）真实绘制，无异常色块。
 
+## 第三方材质署名
+
+本项目渲染画面使用了 [Faithful 64x](https://faithfulpack.net) 资源包中的方块贴图（草、泥土、石头、橡木、树叶、水、沙子）。Faithful 是开源社区项目，依据 [Faithful License](THIRD_PARTY_LICENSES.txt) 使用。材质取自官方仓库 [Faithful-Resource-Pack/Faithful-Java-64x](https://github.com/Faithful-Resource-Pack/Faithful-Java-64x)，草顶/树叶/水在原灰度贴图上按 Minecraft 生物群系 colormap 着色。本项目非 Mojang / Microsoft 官方产品，未获其授权或认可。
+
 ## 许可
 
-Apache-2.0 · ChaosSurvivalProject
+站点代码 Apache-2.0 · ChaosSurvivalProject；Faithful 64x 材质见 `THIRD_PARTY_LICENSES.txt`。

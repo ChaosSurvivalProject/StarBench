@@ -66,6 +66,8 @@
     varying float vDist;
     void main() {
       vec4 tex = texture2D(uTex, vUV);
+      // 叶片 alpha 镂空：Faithful 64x 叶片带透明像素，按 Minecraft fast-leaves 做 alpha 测试
+      if (tex.a < 0.5) discard;
       vec3 col = tex.rgb * (0.25 + 0.75 * vLight);
       float f = clamp((vDist - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
       gl_FragColor = vec4(mix(col, uFog, f), 1.0);
@@ -118,12 +120,25 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      // Faithful 贴图异步加载完成后重新上传纹理
+      this.atlasCanvas = atlas;
+      const self = this;
+      SB.onAtlasReady = function () { self.refreshTexture(); };
       gl.enable(gl.DEPTH_TEST);
       gl.enable(gl.CULL_FACE);
       gl.cullFace(gl.BACK);
       this.vertexCount = 0;
       this.camAngle = 0;
       this.resize();
+    }
+
+    /** Faithful 图集异步加载完成后，把最新像素重新上传到 GPU。 */
+    refreshTexture() {
+      const gl = this.gl;
+      gl.bindTexture(gl.TEXTURE_2D, this.tex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.atlasCanvas);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     }
 
     resize() {
@@ -161,6 +176,9 @@
     // 固定运镜脚本：绕场景公转 + 轻微俯仰摆动，确保每帧真实绘制
     draw(dtSec) {
       const gl = this.gl, c = this.canvas;
+      // Faithful 图集异步加载：前若干帧持续重传，确保 GPU 拿到加载完成的像素
+      if (this._texWarmup === undefined) this._texWarmup = 0;
+      if (this._texWarmup < 120) { this.refreshTexture(); this._texWarmup++; }
       this.resize();
       this.camAngle += dtSec * 0.9;
       const ctr = this.worldCenter || [0, 0, 0];
