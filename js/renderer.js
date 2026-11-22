@@ -154,12 +154,12 @@
     draw(dtSec) {
       const gl = this.gl, c = this.canvas;
       this.resize();
-      this.camAngle += dtSec * 0.42;
+      this.camAngle += dtSec * 0.9;
       const ctr = this.worldCenter || [0, 0, 0];
       const R = this.radius || 24;
       const eye = [
         ctr[0] + Math.cos(this.camAngle) * R,
-        ctr[1] + 9 + Math.sin(this.camAngle * 0.55) * 3,
+        ctr[1] + 10 + Math.sin(this.camAngle * 0.7) * 4,
         ctr[2] + Math.sin(this.camAngle) * R,
       ];
       const proj = M4.perspective(50 * Math.PI / 180, c.width / c.height, 0.1, 400);
