@@ -16,11 +16,22 @@
 
   function fmt(n) { return Number(n).toLocaleString('zh-CN'); }
 
+  const CIRC = 2 * Math.PI * 52; // 圆环周长
+
   function setHud(info) {
     $('hudPhase').textContent = info.phase || '--';
     $('hudFps').textContent = (info.fps || 0).toFixed(1) + ' FPS';
     $('hudWork').textContent = fmt(info.work || 0);
+    if (info.countdown != null) {
+      $('countdown').hidden = false;
+      $('cdLabel').textContent = info.phaseLabel || info.phase || '';
+      $('cdNum').textContent = info.countdown.toFixed(1);
+      const remain = Math.max(0, Math.min(1, info.countdown / (info.countdownTotal || 1)));
+      $('cdArc').style.strokeDashoffset = String(CIRC * (1 - remain));
+    }
   }
+
+  function hideCountdown() { $('countdown').hidden = true; }
 
   function onStatus(status, label, progress) {
     const names = {
@@ -32,6 +43,7 @@
     if (status === 'DONE') {
       $('startBtn').disabled = false;
       $('stopBtn').disabled = true;
+      hideCountdown();
     }
   }
 
@@ -82,12 +94,16 @@
     $('report').hidden = true;
     $('startBtn').disabled = true;
     $('stopBtn').disabled = false;
+    $('hudPhase').textContent = '预热';
+    hideCountdown();
     runner.start();
   });
   $('stopBtn').addEventListener('click', () => {
     runner.stop();
     $('startBtn').disabled = false;
     $('stopBtn').disabled = true;
+    $('hudPhase').textContent = '待机';
+    hideCountdown();
     $('statusText').textContent = '已停止，可重新开始';
   });
   $('copyBtn').addEventListener('click', async () => {
