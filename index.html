@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>StarBench · 星穹旅驿等效负载在线跑分</title>
-  <meta name="description" content="StarBench 星穹旅驿一键等效负载跑分 Web 版：真实 WebGL 体素引擎逐帧渲染，在线测峰值/平均/1% Low。" />
+  <meta name="description" content="StarBench 浏览器内等效负载观察：自写体素世界 + 区块网格重建 + WebGL 渲染，仿《我的世界》运算形态。非官方客户端，不预测 MC 帧率。" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236ea8ff'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -14,37 +14,41 @@
       <span class="logo">✦</span>
       <div>
         <div class="title">StarBench <span>星穹旅驿</span></div>
-        <div class="subtitle">我的世界等效负载 · 在线一键跑分</div>
+        <div class="subtitle">浏览器内等效负载观察 · 非《我的世界》跑分器</div>
       </div>
     </div>
     <div class="badges">
-      <span class="badge">WebGL 实时渲染</span>
-      <span class="badge">v0.3.0-web</span>
+      <span class="badge">WebGL2 优先 / WebGL1 回退</span>
+      <span class="badge">v0.5.0-web</span>
     </div>
   </header>
 
   <main class="layout">
     <section class="stage">
-      <canvas id="screen" class="screen-canvas"></canvas>
+      <canvas id="screen" class="screen-canvas" aria-label="体素世界渲染画面"></canvas>
       <div id="countdown" class="countdown" hidden>
         <div class="cd-label" id="cdLabel">预热</div>
         <div class="cd-ring">
-          <svg viewBox="0 0 120 120">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
             <circle class="cd-track" cx="60" cy="60" r="52"></circle>
             <circle id="cdArc" class="cd-arc" cx="60" cy="60" r="52"></circle>
           </svg>
-          <div class="cd-num" id="cdNum">2.6</div>
+          <div class="cd-num" id="cdNum">1.6</div>
         </div>
-        <div class="cd-unit">秒后进入下一场景</div>
+        <div class="cd-unit">秒后进入下一阶段</div>
       </div>
       <div class="stage-overlay">
         <div class="hud">
-          <div class="hud-item"><span class="hud-label">状态</span><span id="hudPhase" class="hud-val">待机</span></div>
+          <div class="hud-item"><span class="hud-label">当前阶段</span><span id="hudPhase" class="hud-val">待机</span></div>
           <div class="hud-item"><span class="hud-label">实时帧率</span><span id="hudFps" class="hud-val">-- FPS</span></div>
-          <div class="hud-item"><span class="hud-label">运算量</span><span id="hudWork" class="hud-val">0</span></div>
+          <div class="hud-item"><span class="hud-label">帧时间</span><span id="hudFrame" class="hud-val">-- ms</span></div>
+          <div class="hud-item"><span class="hud-label">tick 耗时</span><span id="hudTick" class="hud-val">-- ms</span></div>
+          <div class="hud-item"><span class="hud-label">运算量</span><span id="hudWork" class="hud-val">0 /s</span></div>
         </div>
+        <div class="curve-wrap"><canvas id="curve" class="curve" width="600" height="64" aria-hidden="true"></canvas><span class="curve-cap">帧时间曲线（16.67ms 参考线 · 5Hz）</span></div>
         <div class="progress-wrap">
           <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+          <div id="progressText" class="progress-text">0%</div>
           <div id="statusText" class="status-text">点击下方按钮开始在线跑分</div>
         </div>
       </div>
@@ -55,41 +59,74 @@
       <div class="notice">
         <div class="notice-title">ⓘ 温度告知与合规声明</div>
         <ul>
-          <li>浏览器无法读取 SoC 结温 / thermal headroom，相关项一律显示 <b>unavailable</b>，不锁频、不提频、不对抗温控。</li>
-          <li>本页为<b>自绘体素场景</b>，用于等效负载测试，<b>非《我的世界》官方客户端</b>，未宣称 1:1 还原，不含任何官方美术资源。</li>
-          <li>跑分过程中请保持页面在前台，切换到后台会导致浏览器降帧，影响结果。</li>
+          <li>浏览器<b>无法读取</b> SoC 结温 / thermal headroom / 频率 / 风扇，相关字段一律输出 <b>unavailable</b>；<b>禁止</b>用 FPS 下降反推「过热」或下结论。</li>
+          <li><b>不锁频、不提频、不对抗温控</b>；不请求任何设备权限、不读取传感器、不做长时间高负载折磨测试；提供随时「停止」与自动结束。</li>
+          <li>本页为<b>自写体素世界 + 自写噪声 + 自绘贴图</b>的<b>等效负载生成器</b>，仿《我的世界》运算形态，<b>非官方客户端</b>，不宣称 1:1 还原，不预测 MC 真实帧率，不与 3DMark/安兔兔/原生客户端分数互换。</li>
+          <li><b>纯本地运行</b>：不上传任何逐帧数据、无账号、无排行榜。所有历史仅存于本机浏览器。</li>
+          <li>Minecraft / Java Edition / Bedrock Edition 名称仅作负载剖面描述；<b>商标归 Mojang/Microsoft 所有，本项目与其无关联</b>，不含任何官方美术资源或代码。</li>
         </ul>
       </div>
 
+      <div id="swWarn" class="warnbox" hidden>⚠ 检测到软件渲染（SwiftShader/llvmpipe）。结果受软件光栅化瓶颈主导，不具跨设备区分力，仅供本机观察。</div>
+
+      <div class="checklist">
+        <div class="checklist-title">开始前检查清单</div>
+        <ul>
+          <li>已插电 / 电量充足，关闭省电模式</li>
+          <li>关闭其他图形负载标签页与后台下载</li>
+          <li>设备冷却、无其他重负载运行</li>
+          <li>同一浏览器、同一分辨率、同一版本；建议跑 2–3 次取中位数与波动范围</li>
+        </ul>
+        <label class="chkline"><input type="checkbox" id="readyChk" /> 我已完成上述检查</label>
+      </div>
+
       <div class="controls">
-        <button id="startBtn" class="btn btn-primary">▶ 开始一键跑分</button>
-        <button id="stopBtn" class="btn btn-ghost" disabled>■ 停止</button>
+        <button id="startBtn" class="btn btn-primary" title="标准 18.4 秒短跑">▶ 开始跑分 18.4s</button>
+        <button id="stopBtn" class="btn btn-ghost" disabled title="停止即作废整轮">■ 停止（作废本轮）</button>
+      </div>
+      <div class="controls controls-sustain">
+        <button id="sustain2Btn" class="btn btn-small" title="观察趋势，不产出跨设备分数">持续观测 2min</button>
+        <button id="sustain5Btn" class="btn btn-small" title="观察趋势，不产出跨设备分数">持续观测 5min</button>
       </div>
 
       <div class="flow">
-        <div class="flow-title">测试流程</div>
+        <div class="flow-title">测试流程（总时长 18.4s）</div>
         <ol>
-          <li>预热 · 构建世界 <span>1.6s</span></li>
-          <li>Java Edition · 3 场景 <span>7.8s</span></li>
-          <li>冷却判定（仅观测） <span>1.2s</span></li>
-          <li>Bedrock Edition · 3 场景 <span>7.8s</span></li>
-          <li>输出峰值 / 平均 / 1% Low 三套分数</li>
+          <li>预热 / 构建世界 <span>1.6s · 帧丢弃</span></li>
+          <li>Java 剖面 S1/S2/S3 <span>3×2.6s</span></li>
+          <li>回落观测窗口 <span>1.2s · 不作温控诊断</span></li>
+          <li>Bedrock 剖面 S1/S2/S3 <span>3×2.6s</span></li>
+          <li>分维度分数 + 综合分（几何平均）</li>
         </ol>
+        <div class="flow-note">FPS 变化可能来自温控、省电、后台任务、驱动或浏览器调度，本页不作诊断。单段 2.6s 在 60Hz 下约 156 帧，最慢 1% 仅 1–2 帧；sample_count &lt; 300 标「样本不足，仅供参考」。</div>
       </div>
 
       <div id="report" class="report" hidden>
         <div class="report-title">跑分报告</div>
         <div id="reportBody"></div>
         <div class="report-actions">
-          <button id="copyBtn" class="btn btn-small">复制报告</button>
-          <button id="downloadBtn" class="btn btn-small">下载 JSON</button>
+          <button id="copyBtn" class="btn btn-small" disabled>复制报告 JSON</button>
+          <button id="downloadBtn" class="btn btn-small" disabled>下载 JSON</button>
         </div>
       </div>
+
+      <div id="history" class="history"></div>
+
+      <div class="data-tools">
+        <div class="data-tools-title">本地历史 / 导入导出</div>
+        <div class="data-tools-row">
+          <button id="exportBtn" class="btn btn-small">导出历史</button>
+          <label class="btn btn-small filelabel">导入报告 JSON<input type="file" id="importInput" accept="application/json,.json" hidden /></label>
+        </div>
+        <div class="data-tools-note">导入限制 1MiB，严格字段与有限数校验；外部导入标记「未在本机验证」。跨 benchmark_version 的分数不可比较。</div>
+      </div>
+
+      <div class="sr-only" id="liveStatus" aria-live="polite" role="status">待机</div>
     </aside>
   </main>
 
   <footer class="footer">
-    <span>StarBench · ChaosSurvivalProject · Apache-2.0</span>
+    <span>StarBench · ChaosSurvivalProject · Apache-2.0 · 第三方材质署名见 THIRD_PARTY_LICENSES.txt</span>
     <a href="https://github.com/ChaosSurvivalProject/StarBench" target="_blank" rel="noopener">GitHub 仓库</a>
   </footer>
 

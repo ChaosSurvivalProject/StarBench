@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://chaossurvivalproject.github.io/StarBench/schema/report.schema.json",
+  "title": "StarBench Web 等效负载报告",
+  "description": "定版 schema v1.0。禁止随意加字段。跨 benchmark_version 的分数不可比较。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "benchmark_version", "score_version", "workload_hash", "run_id", "started_at", "validity", "env", "config", "segments", "score", "thermal", "notes"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "benchmark_version": { "type": "string" },
+    "score_version": { "type": "string" },
+    "workload_hash": { "type": "string", "pattern": "^[0-9a-f]{8}$" },
+    "run_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "validity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "void_reasons"],
+      "properties": {
+        "status": { "enum": ["valid", "invalid"] },
+        "void_reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "env": {
+      "type": "object", "additionalProperties": false,
+      "required": ["browser", "os", "renderer", "vendor", "software_renderer", "refresh_hz", "drawing_buffer", "dpr", "power", "hardware_accel"],
+      "properties": {
+        "browser": { "type": "string" },
+        "os": { "type": "string" },
+        "renderer": { "type": "string" },
+        "vendor": { "type": "string" },
+        "software_renderer": { "type": "boolean" },
+        "refresh_hz": { "type": "number", "minimum": 0 },
+        "drawing_buffer": { "type": "string", "pattern": "^[0-9]+x[0-9]+$" },
+        "dpr": { "type": "number", "minimum": 0 },
+        "power": { "enum": ["ac", "battery", "unknown"] },
+        "hardware_accel": { "enum": ["true", "false", "unknown"] }
+      }
+    },
+    "config": {
+      "type": "object", "additionalProperties": true,
+      "required": ["seed", "profile", "duration_ms", "warmup_ms"],
+      "properties": {
+        "seed": { "type": "integer" },
+        "profile": { "type": "string" },
+        "duration_ms": { "type": "number" },
+        "warmup_ms": { "type": "number" },
+        "mode": { "enum": ["short", "sustained"] },
+        "sustained_ms": { "type": "number" }
+      }
+    },
+    "segments": {
+      "type": "array", "minItems": 0,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "warmup_ms", "sample_count", "tick_ms", "chunks_per_s", "mesh_ms", "avg_fps", "p99_frame_ms", "low1_fps", "stutter_count", "stability_ratio"],
+        "properties": {
+          "name": { "type": "string" },
+          "warmup_ms": { "type": "number" },
+          "sample_count": { "type": "integer", "minimum": 0 },
+          "tick_ms": {
+            "type": "object", "additionalProperties": false,
+            "required": ["p50", "p95", "p99", "over_50ms"],
+            "properties": {
+              "p50": { "type": "number" }, "p95": { "type": "number" },
+              "p99": { "type": "number" }, "over_50ms": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "chunks_per_s": { "type": "number" },
+          "mesh_ms": { "type": "number" },
+          "avg_fps": { "type": "number" },
+          "p99_frame_ms": { "type": "number" },
+          "low1_fps": { "type": "number" },
+          "stutter_count": { "type": "integer", "minimum": 0 },
+          "stability_ratio": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "score": {
+      "type": "object", "additionalProperties": false,
+      "required": ["formula", "sim", "stability", "render", "total"],
+      "properties": {
+        "formula": { "type": "string" },
+        "sim": { "type": "number" }, "stability": { "type": "number" },
+        "render": { "type": "number" }, "total": { "type": "number" }
+      }
+    },
+    "thermal": { "const": "unavailable" },
+    "notes": { "type": "string" }
+  }
+}

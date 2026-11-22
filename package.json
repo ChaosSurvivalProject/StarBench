@@ -1,0 +1,14 @@
+{
+  "name": "starbench-web-tests",
+  "version": "0.5.0",
+  "private": true,
+  "description": "StarBench Web 测试依赖（零运行时依赖；仅测试用 Playwright）",
+  "scripts": {
+    "test": "node tests/metrics.test.js",
+    "test:e2e": "node tests/playwright.e2e.js",
+    "serve": "python3 -m http.server 8899"
+  },
+  "devDependencies": {
+    "playwright": "1.49.1"
+  }
+}

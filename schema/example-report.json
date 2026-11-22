@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "benchmark_version": "0.5.0-web",
+  "score_version": "1.0",
+  "workload_hash": "5cd8a39a",
+  "run_id": "sb-20261122-demo",
+  "started_at": "2026-11-22T10:00:00.000Z",
+  "validity": {
+    "status": "valid",
+    "void_reasons": []
+  },
+  "env": {
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120",
+    "os": "Linux x86_64",
+    "renderer": "ANGLE (NVIDIA, GeForce GTX 1660)",
+    "vendor": "Google Inc.",
+    "software_renderer": false,
+    "refresh_hz": 60,
+    "drawing_buffer": "1280x720",
+    "dpr": 1,
+    "power": "ac",
+    "hardware_accel": "unknown"
+  },
+  "config": {
+    "seed": 20261122,
+    "profile": "java+bedrock",
+    "duration_ms": 18400,
+    "warmup_ms": 1600,
+    "mode": "short",
+    "sustained_ms": 0
+  },
+  "segments": [
+    {
+      "name": "java/s1",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    },
+    {
+      "name": "java/s2",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    },
+    {
+      "name": "java/s3",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    },
+    {
+      "name": "bedrock/s1",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    },
+    {
+      "name": "bedrock/s2",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    },
+    {
+      "name": "bedrock/s3",
+      "warmup_ms": 1600,
+      "sample_count": 156,
+      "tick_ms": {
+        "p50": 11,
+        "p95": 50.8,
+        "p99": 58.16,
+        "over_50ms": 1
+      },
+      "chunks_per_s": 240,
+      "mesh_ms": 2.133,
+      "avg_fps": 49.02,
+      "p99_frame_ms": 22.593,
+      "low1_fps": 44.26,
+      "stutter_count": 0,
+      "stability_ratio": 0.903
+    }
+  ],
+  "score": {
+    "formula": "total = GM(sim, stability, render) × (1280×720 / actualPixels)^0.15；sim=GM(chunks_per_s + 0.01×entity_updates_per_s)，stability=GM(low1_fps/avg_fps)，render=GM(avg_fps)；三维等权几何平均，禁止线性相加。",
+    "sim": 240.8,
+    "stability": 0.903,
+    "render": 49.02,
+    "total": 22.01
+  },
+  "thermal": "unavailable",
+  "notes": "浏览器等效负载观察值，非《我的世界》帧率预测"
+}
