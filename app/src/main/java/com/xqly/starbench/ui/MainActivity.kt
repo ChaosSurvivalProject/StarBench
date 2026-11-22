@@ -55,7 +55,7 @@ class MainActivity : Activity(), BenchmarkRunner.Listener {
         })
 
         root.addView(TextView(this).apply {
-            text = ComplianceText.statement(AssetPackMode.A_CLEAN_ROOM) + "\n" + ComplianceText.FAITHFUL_CREDIT
+            text = ComplianceText.statement(AssetPackMode.A_CLEAN_ROOM) + "\n" + ComplianceText.FAITHFUL_CREDIT + "\n" + ComplianceText.MOB_MODELS_CREDIT
             textSize = 11f
             setTextColor(Color.GRAY)
             setPadding(pad, 8, pad, 8)

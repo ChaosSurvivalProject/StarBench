@@ -26,21 +26,22 @@ class BenchmarkRunner(
     private data class Case(
         val edition: Edition,
         val label: String,
-        val size: Int,
-        val entities: Int,
+        val chunks: Int,
+        val height: Int,
+        val mobCap: Int,
         val chunkWork: Int,
         val durationMs: Long,
     )
 
-    // Java：模拟距离 5–32；Bedrock：偶数 4–12、渲染与模拟解耦。
-    // 这里用世界规模/实体数/区块重建量来体现两套独立参数口径。
+    // 每个场景由 64×64 区块构成（chunks 为边长区块数）。
+    // Java 视距 / Bedrock 模拟距离分离，mobCap 随区块数缩放，形成真实压力。
     private val cases = listOf(
-        Case(Edition.JAVA, "Java · 视距8 / 模拟5", 28, 8, 1, 2000),
-        Case(Edition.JAVA, "Java · 视距16 / 模拟12", 40, 14, 2, 2000),
-        Case(Edition.JAVA, "Java · 视距32 / 模拟24", 52, 20, 3, 2500),
-        Case(Edition.BEDROCK, "Bedrock · 渲染8 / 模拟4", 28, 8, 1, 2000),
-        Case(Edition.BEDROCK, "Bedrock · 渲染16 / 模拟8", 40, 14, 2, 2000),
-        Case(Edition.BEDROCK, "Bedrock · 渲染24 / 模拟12", 52, 20, 3, 2500),
+        Case(Edition.JAVA, "Java · 视距3 · 4区块", 2, 48, 30, 3, 2000),
+        Case(Edition.JAVA, "Java · 视距4 · 9区块", 3, 56, 54, 4, 2000),
+        Case(Edition.JAVA, "Java · 视距5 · 16区块", 4, 64, 84, 6, 2500),
+        Case(Edition.BEDROCK, "Bedrock · 模拟4 · 4区块", 2, 48, 28, 3, 2000),
+        Case(Edition.BEDROCK, "Bedrock · 模拟8 · 9区块", 3, 56, 50, 4, 2000),
+        Case(Edition.BEDROCK, "Bedrock · 模拟12 · 16区块", 4, 64, 78, 6, 2500),
     )
 
     private var phaseIndex = -1
@@ -81,7 +82,7 @@ class BenchmarkRunner(
         frameCount = 0
         when (phaseIndex) {
             0 -> {
-                renderer.applyScenario(24, 24, 6, 1, "预热")
+                renderer.applyScenario(2, 48, 24, 3, "预热")
                 listener?.onStatus("WARMUP", "热机到热稳态（不计正式数据）", 5)
             }
             1 -> enterScenario(Edition.JAVA, 0..2)
@@ -103,7 +104,7 @@ class BenchmarkRunner(
     private fun enterScenario(edition: Edition, range: IntRange) {
         val idxInEdition = if (edition == Edition.JAVA) phaseJavaIndex else phaseBedrockIndex
         val c = cases[range.first + idxInEdition]
-        renderer.applyScenario(c.size, c.size, c.entities, c.chunkWork, c.label)
+        renderer.applyScenario(c.chunks, c.height, c.mobCap, c.chunkWork, c.label)
         // applyScenario 内 regenerate 会重置并重新累加计数，之后取基线才正确
         caseStartWork = renderer.currentWorkCounter()
         listener?.onStatus("${edition.name}_RUN", c.label, 10 + (range.first + idxInEdition) * 14)
@@ -191,6 +192,7 @@ class BenchmarkRunner(
         md.appendLine()
         md.appendLine("> 星穹旅驿官方出品 · 独立实现 · 非 Mojang / Microsoft 官方产品，未获其授权或认可 · 不含任何官方资源文件与商标。")
         md.appendLine("> 方块材质：Faithful 64x（faithfulpack.net，开源社区资源，依 Faithful License 使用）。")
+        md.appendLine("> 动物模型：22i/minecraft-voxel-blender-models（GPL-3.0，1:1 体素生物，保留版权与许可全文）。")
         md.appendLine()
         md.appendLine("## 运行口径")
         md.appendLine("- 目标平台：Android 9 (API 28)（minSdk 21 / targetSdk 28）")

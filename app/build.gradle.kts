@@ -11,8 +11,8 @@ android {
         applicationId = "com.xqly.starbench"
         minSdk = 21          // 兼容 Android 5.0+，目标设备 Android 9 (API 28)
         targetSdk = 28       // 「基于安卓 9」：把目标平台明确设为 Android 9
-        versionCode = 3
-        versionName = "0.3.0-android9-faithful64x"
+        versionCode = 4
+        versionName = "0.4.0-android9-mobs64"
     }
 
     signingConfigs {

@@ -8,18 +8,20 @@
 
 | 版本 | 说明 | 下载 |
 |---|---|---|
-| v0.3.0-android9-faithful64x | **最新**：正式签名版，接入 Faithful 64x 材质（推荐） | 见仓库 [Releases](https://github.com/ChaosSurvivalProject/StarBench/releases) 页 |
+| v0.4.0-android9-mobs64 | **最新**：64×64 区块 + 群系 + 1:1 动物模型（推荐） | 见仓库 [Releases](https://github.com/ChaosSurvivalProject/StarBench/releases) 页 |
+| v0.3.0-android9-faithful64x | 旧版：接入 Faithful 64x 材质 | 见仓库 Releases 页 |
 | v0.2.0-android9-release | 旧版正式签名版（程序化自绘材质） | 见仓库 Releases 页 |
-| v0.2.0-android9 | 旧版 Debug 版 | 见仓库 Releases 页 |
 
 - 包名 `com.xqly.starbench`，`minSdk 21`（Android 5.0+）、**`targetSdk 28`（Android 9）**。
-- **v0.3.0 画面材质**：OpenGL ES 2.0 渲染改用 [Faithful 64x](https://faithfulpack.net) 开源方块贴图（64×64，叶片 alpha 镂空），与网页版共用同一张图集、同步更新。
+- **v0.4.0 画面与压力**：世界升级为 **64×64 区块**，加入确定性群系、pack 刷怪与 mob cap、16³ 区块段重建；OpenGL ES 2.0 渲染接入 [22i 的 1:1 Minecraft 生物体素模型（GPL-3.0）](https://github.com/22i/minecraft-voxel-blender-models)——牛/猪/羊/鸡/狼按群系生成、带 UV 贴图与步态动画。方块仍用 [Faithful 64x](https://faithfulpack.net)，与网页版同步更新。
 - 本地文件也可在 `downloads/` 目录找到，SHA-256 见 [downloads/SHA256SUMS.txt](../downloads/SHA256SUMS.txt)。
-- 安装：允许「安装未知来源应用」后点击 APK；或 `adb install StarBench-v0.3.0-android9-faithful64x.apk`。
+- 安装：允许「安装未知来源应用」后点击 APK；或 `adb install StarBench-v0.4.0-android9-mobs64.apk`。
 
 > **诚实声明（重要）**：这是一个**真实可运行的等效负载基线版**——世界生成、光照传播、实体推进、网格构建都是逐帧真实计算，画面由 OpenGL ES 2.0 逐帧渲染（非视频/截图/预录帧），CPU/温度/帧耗时为真实采集。画面方块材质采用 **[Faithful 64x](https://faithfulpack.net)** 开源贴图（非 Mojang / Microsoft 官方美术资源）。**但它尚未达到「1:1 还原我的世界」的硬验收**：引擎与场景为 clean-room 独立实现，未使用官方代码、模型、音效或商标。报告页会如实标注这一点。
 
 > **第三方材质署名**：世界内方块贴图来自 Faithful Resource Pack 的 [Faithful-Java-64x](https://github.com/Faithful-Resource-Pack/Faithful-Java-64x)（64×64，含草、泥土、石头、橡木、树叶、水、沙子），依据 [Faithful License](THIRD_PARTY_LICENSES.txt) 使用；草顶 / 树叶 / 水按 Minecraft 生物群系 colormap 着色。Faithful 官网：<https://faithfulpack.net>。本项目与 Faithful 均非 Mojang / Microsoft 官方产品，未获其授权或认可。
+>
+> **动物模型署名（GPL-3.0）**：世界内的牛、猪、羊、鸡、狼体素模型来自 [22i/minecraft-voxel-blender-models](https://github.com/22i/minecraft-voxel-blender-models)，依据 **GPL-3.0** 使用；真实 `.b3d` 模型的顶点/UV/三角索引导出为 `assets/mobs.bin`，UV 贴图烘焙为 `assets/mobatlas.png`。该模型为社区 1:1 复刻（Mineclonia / MineClone2 同源），非官方美术；按 GPL-3.0 保留版权声明与许可全文（见 `THIRD_PARTY_LICENSES.txt`），源码见 Source URL。
 >
 > **Android 9 的平台事实**：`PerformanceHintManager`(API 31+) 与 Thermal API(API 29+) 在 Android 9 上不存在，因此 thermal headroom / ADPF 提频提示在报告中标 `unavailable`，未做忙等提频、锁频或绕过温控；温度取自电池温度计（整机口径）。
 

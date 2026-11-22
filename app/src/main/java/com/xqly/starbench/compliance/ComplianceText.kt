@@ -11,6 +11,10 @@ object ComplianceText {
     const val FAITHFUL_CREDIT: String =
         "方块材质：Faithful 64x（faithfulpack.net）· 开源社区资源，非 Mojang / Microsoft 官方美术。"
 
+    /** 动物模型署名（GPL-3.0，须保留版权声明 + 许可全文 + 源码可得）。 */
+    const val MOB_MODELS_CREDIT: String =
+        "动物模型：22i/minecraft-voxel-blender-models（GPL-3.0）· 1:1 体素生物，非官方美术。"
+
     /** 启动页常驻卡片 + 首启一次性说明。不阻断流程、不弹二次确认。 */
     const val TEMPERATURE_NOTICE: String =
         "温度会明显影响本次成绩。手机越热，系统越会降低 CPU/GPU 频率，分数和帧率就会下降。" +
