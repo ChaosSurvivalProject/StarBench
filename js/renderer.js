@@ -79,10 +79,12 @@
   }
 
   class WebGLRenderer {
-    constructor(canvas) {
-      this.canvas = canvas;
-      const gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: true })
-        || canvas.getContext('experimental-webgl');
+    constructor(glCanvas, screenCanvas) {
+      this.canvas = glCanvas;              // 离屏 WebGL 画布（真实渲染负载）
+      this.screen = screenCanvas;          // 可见 2D 画布（标准 DOM 合成，任何环境都能显示）
+      this.screenCtx = screenCanvas ? screenCanvas.getContext('2d') : null;
+      const gl = glCanvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: true })
+        || glCanvas.getContext('experimental-webgl');
       if (!gl) throw new Error('WebGL 不可用');
       this.gl = gl;
       this.prog = gl.createProgram();
@@ -127,10 +129,16 @@
     resize() {
       const c = this.canvas;
       const dpr = Math.min(global.devicePixelRatio || 1, 2);
-      const w = Math.max(1, Math.floor(c.clientWidth * dpr));
-      const h = Math.max(1, Math.floor(c.clientHeight * dpr));
+      // 尺寸以可见屏幕画布为准（离屏 gl 画布已被压到 1px）
+      const ref = this.screen || c;
+      const w = Math.max(1, Math.floor(ref.clientWidth * dpr));
+      const h = Math.max(1, Math.floor(ref.clientHeight * dpr));
       if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
       this.gl.viewport(0, 0, c.width, c.height);
+      if (this.screen && (this.screen.width !== c.width || this.screen.height !== c.height)) {
+        this.screen.width = c.width;
+        this.screen.height = c.height;
+      }
     }
 
     upload(world) {
@@ -176,6 +184,11 @@
       gl.clearColor(0.62, 0.76, 0.90, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       if (this.vertexCount > 0) gl.drawArrays(gl.TRIANGLES, 0, this.vertexCount);
+      // 把离屏 WebGL 画面拷到可见 2D 画布（标准合成层，确保任何环境都能显示）。
+      // drawImage 会自动按 WebGL 的正确朝向绘制，无需手动翻转 Y。
+      if (this.screenCtx) {
+        this.screenCtx.drawImage(c, 0, 0);
+      }
     }
   }
   SB.WebGLRenderer = WebGLRenderer;
