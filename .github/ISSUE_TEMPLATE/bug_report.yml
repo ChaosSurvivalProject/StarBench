@@ -1,0 +1,61 @@
+name: 跑分问题反馈
+description: 反馈 StarBench Web 跑分异常。必须附导出的 JSON 报告，否则无法定位。
+title: "[Web] "
+labels: ["bug", "web"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **必填**：请粘贴「下载 JSON」按钮导出的完整报告内容（或附上文件）。
+        没有 JSON 报告的 issue 将被关闭——我们无法在缺少 env/config/segments 的情况下诊断。
+        报告仅含本机观察到的指标，不含任何逐帧原始数据或隐私信息。
+
+  - type: textarea
+    id: report_json
+    attributes:
+      label: 导出的 JSON 报告（必填）
+      description: 点击报告页「下载 JSON」，把文件内容原样粘贴到下方代码块内。
+      render: json
+      placeholder: |
+        {
+          "schema_version": "1.0",
+          "benchmark_version": "...",
+          "score_version": "1.0",
+          "workload_hash": "...",
+          ...
+        }
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / 复现步骤
+      description: 包括浏览器版本、分辨率、是否切后台、是否软件渲染、是否出现作废提示。
+    validations:
+      required: true
+
+  - type: input
+    id: site_version
+    attributes:
+      label: 页面版本徽标
+      placeholder: "v0.5.0-web"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已粘贴完整 JSON 报告（含 run_id / env / segments / score / thermal）
+          required: true
+        - label: 我理解本页是等效负载观察值，非《我的世界》帧率预测
+          required: true

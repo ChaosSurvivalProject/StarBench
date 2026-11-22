@@ -1,0 +1,72 @@
+name: web-ci
+
+# 网页跑分 CI：Playwright 场景截图回归 + JSON schema 校验 + 百分位/1%Low 单测
+# + visibilitychange 作废单测 + 刷新率封顶检测单测。网页源码在 gh-pages 分支。
+on:
+  push:
+    branches: [gh-pages, main]
+  pull_request:
+    branches: [gh-pages, main]
+
+jobs:
+  web-quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 网页源码（gh-pages）
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install 测试依赖（含 lockfile）
+        run: npm ci
+
+      - name: Setup Python + jsonschema
+        run: pip install jsonschema==4.26.0
+
+      - name: JS 语法检查
+        run: for f in js/*.js; do node --check "$f"; done
+
+      - name: 单测（百分位 / 1% Low / refresh-cap / 作废 / 几何平均）
+        run: node tests/metrics.test.js
+
+      - name: JSON schema 校验（示例报告 + 负例）
+        run: |
+          python3 - <<'PY'
+          import json, jsonschema, copy
+          schema = json.load(open('schema/report.schema.json'))
+          report = json.load(open('schema/example-report.json'))
+          jsonschema.validate(report, schema)
+          print('example-report.json VALID')
+          bad = copy.deepcopy(report); bad['thermal'] = '42C'
+          try:
+              jsonschema.validate(bad, schema)
+              raise SystemExit('thermal negative test FAILED')
+          except jsonschema.ValidationError:
+              print('thermal negative OK')
+          bad = copy.deepcopy(report); bad['unexpected'] = 1
+          try:
+              jsonschema.validate(bad, schema)
+              raise SystemExit('additionalProperties negative test FAILED')
+          except jsonschema.ValidationError:
+              print('additionalProperties negative OK')
+          PY
+
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Playwright 端到端 + 截图回归
+        run: node tests/playwright.e2e.js
+
+      - name: 上传截图产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: starbench-web-screenshots
+          path: test-results/*.png
+          if-no-files-found: warn
