@@ -2,11 +2,13 @@
 (function () {
   "use strict";
   const $ = (id) => document.getElementById(id);
-  const canvas = $('gl');
+  // 用一个完全脱离 DOM 的 canvas 做 WebGL 离屏渲染，避免其合成层干扰页面显示
+  const glCanvas = document.createElement('canvas');
+  const screenCanvas = $('screen');
   let renderer, runner, lastReport = null;
 
   try {
-    renderer = new SB.WebGLRenderer(canvas);
+    renderer = new SB.WebGLRenderer(glCanvas, screenCanvas);
   } catch (e) {
     const err = $('glError');
     err.hidden = false;
