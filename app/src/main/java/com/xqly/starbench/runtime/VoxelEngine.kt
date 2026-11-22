@@ -157,50 +157,79 @@ class VoxelWorld(var sizeX: Int, var sizeZ: Int, var height: Int, val seed: Long
         }
     }
 
-    /** 从当前真实世界状态构建可见网格：逐面剔除 + 光照着色。 */
+    /** Faithful 64x 图集：4 列 x 3 行，与网页版共用同一张 atlas64.png。 */
+    private val atlasCols = 4
+    private val atlasRows = 3
+
+    /** 方块 + 面 -> 图集瓦片索引（草顶/草侧、木顶/木侧分开）。 */
+    private fun tileOf(b: Int, isTop: Boolean, isBottom: Boolean): Int = when (b) {
+        Block.GRASS -> if (isTop) 0 else if (isBottom) 2 else 1
+        Block.DIRT -> 2
+        Block.STONE -> 3
+        Block.WOOD -> if (isTop || isBottom) 4 else 5
+        Block.LEAVES -> 6
+        Block.WATER -> 7
+        Block.SAND -> 8
+        else -> 3
+    }
+
+    /** 每个面四角的 UV（0..3 对应 face.corners 顺序），基于该面的瓦片索引。 */
+    private fun uvForTile(tile: Int): Array<FloatArray> {
+        val col = tile % atlasCols
+        val row = tile / atlasCols
+        val eps = 0.5f / (atlasCols * 64f)      // 半像素，防渗色
+        val u0 = col.toFloat() / atlasCols + eps
+        val u1 = (col + 1).toFloat() / atlasCols - eps
+        // GLUtils.texImage2D 不翻转 Y：位图顶行落在 t=0，故瓦片第 0 行对应 v 接近 0
+        val v0 = row.toFloat() / atlasRows + eps
+        val v1 = (row + 1).toFloat() / atlasRows - eps
+        return arrayOf(
+            floatArrayOf(u0, v0), floatArrayOf(u1, v0),
+            floatArrayOf(u1, v1), floatArrayOf(u0, v1),
+        )
+    }
+
+    /** 从当前真实世界状态构建可见网格：逐面剔除 + 光照着色 + Faithful 图集 UV。 */
     fun buildMesh(): VoxelMesh {
         val cap = minOf(sizeX * sizeZ * height * 36, 4_000_000)
         val out = FloatArray(cap)
         var p = 0
-        fun addVertex(x: Float, y: Float, z: Float, r: Float, g: Float, b: Float) {
-            if (p + 6 <= out.size) {
+        // 每顶点 8 float：x,y,z, r,g,b(光照灰阶), u,v
+        fun addVertex(x: Float, y: Float, z: Float, shade: Float, u: Float, v: Float) {
+            if (p + 8 <= out.size) {
                 out[p++] = x; out[p++] = y; out[p++] = z
-                out[p++] = r; out[p++] = g; out[p++] = b
+                out[p++] = shade; out[p++] = shade; out[p++] = shade
+                out[p++] = u; out[p++] = v
             }
         }
         val faces = FACES
         for (x in 0 until sizeX) for (y in 0 until height) for (z in 0 until sizeZ) {
             val b = get(x, y, z)
-            if (b == Block.AIR || b == Block.LEAVES) continue
+            if (b == Block.AIR) continue
             val lv = (light[idx(x, y, z)].toInt() and 0xff) / 15f
-            val shade = 0.35f + 0.65f * lv
+            val baseShade = 0.35f + 0.65f * lv
             for (f in faces) {
                 if (Block.opaque(get(x + f.nx, y + f.ny, z + f.nz))) continue
-                val col = palette(b, f.isTop)
-                val cr = col[0] * shade
-                val cg = col[1] * shade
-                val cb = col[2] * shade
+                val isTop = f.ny > 0
+                val isBottom = f.ny < 0
+                // 面朝向的环境光，让立方体有立体感（对齐网页版 amb 思路）
+                val ambient = when {
+                    isTop -> 1.0f
+                    isBottom -> 0.5f
+                    f.nx > 0 || f.nz > 0 -> 0.82f
+                    else -> 0.68f
+                }
+                val shade = baseShade * ambient
+                val uv = uvForTile(tileOf(b, isTop, isBottom))
                 val c = f.corners
-                addVertex(x + c[0][0], y + c[0][1], z + c[0][2], cr, cg, cb)
-                addVertex(x + c[1][0], y + c[1][1], z + c[1][2], cr, cg, cb)
-                addVertex(x + c[2][0], y + c[2][1], z + c[2][2], cr, cg, cb)
-                addVertex(x + c[0][0], y + c[0][1], z + c[0][2], cr, cg, cb)
-                addVertex(x + c[2][0], y + c[2][1], z + c[2][2], cr, cg, cb)
-                addVertex(x + c[3][0], y + c[3][1], z + c[3][2], cr, cg, cb)
+                val order = intArrayOf(0, 1, 2, 0, 2, 3)
+                for (oi in order) {
+                    addVertex(x + c[oi][0], y + c[oi][1], z + c[oi][2],
+                        shade, uv[oi][0], uv[oi][1])
+                }
             }
         }
-        return VoxelMesh(out.copyOf(p), p / 6)
-    }
-
-    private fun palette(b: Int, top: Boolean): FloatArray = when (b) {
-        Block.GRASS -> if (top) floatArrayOf(0.36f, 0.66f, 0.32f) else floatArrayOf(0.45f, 0.34f, 0.22f)
-        Block.DIRT -> floatArrayOf(0.45f, 0.34f, 0.22f)
-        Block.STONE -> floatArrayOf(0.52f, 0.52f, 0.55f)
-        Block.SAND -> floatArrayOf(0.86f, 0.80f, 0.55f)
-        Block.WATER -> floatArrayOf(0.25f, 0.45f, 0.85f)
-        Block.WOOD -> floatArrayOf(0.40f, 0.28f, 0.15f)
-        Block.LEAVES -> floatArrayOf(0.24f, 0.52f, 0.26f)
-        else -> floatArrayOf(0.5f, 0.5f, 0.5f)
+        return VoxelMesh(out.copyOf(p), p / 8)
     }
 
     private companion object {
@@ -227,5 +256,5 @@ class VoxelWorld(var sizeX: Int, var sizeZ: Int, var height: Int, val seed: Long
     }
 }
 
-/** 每个顶点 6 个 float：x,y,z,r,g,b。 */
+/** 每个顶点 8 个 float：x,y,z, r,g,b(光照灰阶), u,v。 */
 class VoxelMesh(val vertices: FloatArray, val vertexCount: Int)

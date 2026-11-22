@@ -7,6 +7,10 @@ object ComplianceText {
 
     const val BRAND = "星穹旅驿官方出品"
 
+    /** Faithful 64x 开源材质署名（Faithful License 要求在显著位置署名并链接官网）。 */
+    const val FAITHFUL_CREDIT: String =
+        "方块材质：Faithful 64x（faithfulpack.net）· 开源社区资源，非 Mojang / Microsoft 官方美术。"
+
     /** 启动页常驻卡片 + 首启一次性说明。不阻断流程、不弹二次确认。 */
     const val TEMPERATURE_NOTICE: String =
         "温度会明显影响本次成绩。手机越热，系统越会降低 CPU/GPU 频率，分数和帧率就会下降。" +

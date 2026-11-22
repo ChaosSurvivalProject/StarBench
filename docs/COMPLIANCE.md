@@ -22,6 +22,14 @@
 
 > 路径 B 的文案**不得超出实际授权协议范围**；凭证编号必须真实存在且与 `system.json` 一致。
 
+### 第三方材质署名（Faithful 64x，v0.3.0+）
+
+画面方块贴图来自开源社区项目 [Faithful 64x](https://faithfulpack.net)（`Faithful-Resource-Pack/Faithful-Java-64x`），依据 **Faithful License** 使用（全文见仓库根目录 `THIRD_PARTY_LICENSES.txt`）。按许可要求，在启动页合规卡与报告页脚显著署名并给出官网链接：
+
+> 方块材质：Faithful 64x（faithfulpack.net）· 开源社区资源，非 Mojang / Microsoft 官方美术。
+
+Faithful 与本项目均非 Mojang / Microsoft 官方产品，未获其授权或认可；Faithful 贴图不是官方美术资源，不构成「1:1 还原官方客户端」的主张。
+
 ## 三、表述红线
 
 - 「我的世界」仅作**描述性指代**，不得作商标式使用。

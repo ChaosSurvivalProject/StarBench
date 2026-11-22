@@ -55,7 +55,7 @@ class MainActivity : Activity(), BenchmarkRunner.Listener {
         })
 
         root.addView(TextView(this).apply {
-            text = ComplianceText.statement(AssetPackMode.A_CLEAN_ROOM)
+            text = ComplianceText.statement(AssetPackMode.A_CLEAN_ROOM) + "\n" + ComplianceText.FAITHFUL_CREDIT
             textSize = 11f
             setTextColor(Color.GRAY)
             setPadding(pad, 8, pad, 8)
@@ -105,7 +105,7 @@ class MainActivity : Activity(), BenchmarkRunner.Listener {
             override fun onFrame(dtSec: Float, workCounter: Long, chunkRebuilds: Int) {
                 if (::runner.isInitialized) runner.onFrame(dtSec, workCounter, chunkRebuilds)
             }
-        })
+        }, this)
         runner = BenchmarkRunner(renderer, DeviceTelemetry(this))
         runner.listener = this
         glView.setRenderer(renderer)

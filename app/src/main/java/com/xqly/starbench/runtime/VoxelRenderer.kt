@@ -1,7 +1,11 @@
 package com.xqly.starbench.runtime
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.opengl.GLUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -15,7 +19,7 @@ import kotlin.math.sin
  * 画面逐帧由 VoxelWorld 的真实状态构建，非视频/截图/预录帧。
  * 相机固定运镜脚本（绕世界中心盘旋 + 缓慢升降），保证不同设备画面口径一致。
  */
-class VoxelRenderer(hook: RenderHook) : GLSurfaceView.Renderer {
+class VoxelRenderer(hook: RenderHook, private val context: Context) : GLSurfaceView.Renderer {
 
     interface RenderHook {
         /** 每帧回调：传入 dt 秒与当前场景工作量计数，由编排层记录真实帧耗时。 */
@@ -44,9 +48,12 @@ class VoxelRenderer(hook: RenderHook) : GLSurfaceView.Renderer {
     private var program = 0
     private var aPos = 0
     private var aColor = 0
+    private var aUV = 0
     private var uMvp = 0
     private var uTint = 0
+    private var uTex = 0
     private var vbo = 0
+    private var texId = 0
     private var vertexCount = 0
     private var viewW = 1
     private var viewH = 1
@@ -64,11 +71,25 @@ class VoxelRenderer(hook: RenderHook) : GLSurfaceView.Renderer {
         program = buildProgram(VERTEX_SHADER, FRAGMENT_SHADER)
         aPos = GLES20.glGetAttribLocation(program, "aPos")
         aColor = GLES20.glGetAttribLocation(program, "aColor")
+        aUV = GLES20.glGetAttribLocation(program, "aUV")
         uMvp = GLES20.glGetUniformLocation(program, "uMvp")
         uTint = GLES20.glGetUniformLocation(program, "uTint")
+        uTex = GLES20.glGetUniformLocation(program, "uTex")
         val buffers = IntArray(1)
         GLES20.glGenBuffers(1, buffers, 0)
         vbo = buffers[0]
+        // Faithful 64x 图集纹理
+        val tex = IntArray(1)
+        GLES20.glGenTextures(1, tex, 0)
+        texId = tex[0]
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId)
+        val atlas: Bitmap = context.assets.open("atlas64.png").use { BitmapFactory.decodeStream(it) }
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, atlas, 0)
+        atlas.recycle()
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
         world.regenerate()
         uploadMesh(world.buildMesh())
     }
@@ -114,12 +135,18 @@ class VoxelRenderer(hook: RenderHook) : GLSurfaceView.Renderer {
         GLES20.glUseProgram(program)
         GLES20.glUniformMatrix4fv(uMvp, 1, false, mvp, 0)
         GLES20.glUniform3f(uTint, 1f, 1f, 1f)
+        // 绑定 Faithful 图集到纹理单元 0
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId)
+        GLES20.glUniform1i(uTex, 0)
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
         GLES20.glEnableVertexAttribArray(aPos)
-        GLES20.glVertexAttribPointer(aPos, 3, GLES20.GL_FLOAT, false, 24, 0)
+        GLES20.glVertexAttribPointer(aPos, 3, GLES20.GL_FLOAT, false, 32, 0)
         GLES20.glEnableVertexAttribArray(aColor)
-        GLES20.glVertexAttribPointer(aColor, 3, GLES20.GL_FLOAT, false, 24, 12)
+        GLES20.glVertexAttribPointer(aColor, 3, GLES20.GL_FLOAT, false, 32, 12)
+        GLES20.glEnableVertexAttribArray(aUV)
+        GLES20.glVertexAttribPointer(aUV, 2, GLES20.GL_FLOAT, false, 32, 24)
 
         // 每隔若干帧从真实世界状态重建一次网格——区块/光照变化在画面上可见
         if (running && chunkCursor % 24 == 0) uploadMesh(world.buildMesh())
@@ -156,19 +183,28 @@ class VoxelRenderer(hook: RenderHook) : GLSurfaceView.Renderer {
         private const val VERTEX_SHADER = """
             attribute vec3 aPos;
             attribute vec3 aColor;
+            attribute vec2 aUV;
             uniform mat4 uMvp;
             varying vec3 vColor;
+            varying vec2 vUV;
             void main() {
                 gl_Position = uMvp * vec4(aPos, 1.0);
                 vColor = aColor;
+                vUV = aUV;
             }
         """
         private const val FRAGMENT_SHADER = """
             precision mediump float;
             varying vec3 vColor;
+            varying vec2 vUV;
             uniform vec3 uTint;
+            uniform sampler2D uTex;
             void main() {
-                gl_FragColor = vec4(vColor * uTint, 1.0);
+                vec4 tex = texture2D(uTex, vUV);
+                // Faithful 叶片 alpha 镂空（fast-leaves），水的 alpha=180 保留
+                if (tex.a < 0.5) discard;
+                vec3 col = tex.rgb * vColor * uTint;
+                gl_FragColor = vec4(col, 1.0);
             }
         """
 
