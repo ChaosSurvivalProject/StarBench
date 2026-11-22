@@ -26,6 +26,17 @@
   <main class="layout">
     <section class="stage">
       <canvas id="gl"></canvas>
+      <div id="countdown" class="countdown" hidden>
+        <div class="cd-label" id="cdLabel">预热</div>
+        <div class="cd-ring">
+          <svg viewBox="0 0 120 120">
+            <circle class="cd-track" cx="60" cy="60" r="52"></circle>
+            <circle id="cdArc" class="cd-arc" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="cd-num" id="cdNum">2.6</div>
+        </div>
+        <div class="cd-unit">秒后进入下一场景</div>
+      </div>
       <div class="stage-overlay">
         <div class="hud">
           <div class="hud-item"><span class="hud-label">状态</span><span id="hudPhase" class="hud-val">待机</span></div>
