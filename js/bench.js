@@ -144,31 +144,47 @@
 
       if (this.world) { this.world.tickEntities(dt, true); this.renderer.draw(dt); }
 
-      if (this.state === 'WARMUP') {
-        if (elapsed >= WARMUP_MS) { this.state = 'JAVA_PENDING'; }
-      } else if (this.state === 'JAVA_PENDING') {
-        this._enterEdition('JAVA');
-        this.state = 'JAVA_RUN';
-      } else if (this.state === 'JAVA_RUN') {
-        const ns = Math.max(1, dt * 1e9);
-        if (ns < 1e9) {
-          this.frames.JAVA.avg.push(ns);
-          this.frames.JAVA.peak.push(ns);
+      const fps = 1 / Math.max(1e-6, dt);
+      const work = this.world ? this.world.workCounter : 0;
+      let countdown = null, countdownTotal = 0, phaseLabel = '', phase = '';
+
+      switch (this.state) {
+        case 'WARMUP':
+          phase = '预热'; phaseLabel = '构建世界中';
+          countdown = Math.max(0, (WARMUP_MS - elapsed) / 1000); countdownTotal = WARMUP_MS / 1000;
+          if (elapsed >= WARMUP_MS) this.state = 'JAVA_PENDING';
+          break;
+        case 'JAVA_PENDING':
+          this._enterEdition('JAVA'); this.state = 'JAVA_RUN';
+          phase = 'Java Edition'; phaseLabel = SB.EditionConfig.JAVA.cases[0].label;
+          countdown = CASE_MS / 1000; countdownTotal = CASE_MS / 1000;
+          break;
+        case 'JAVA_RUN': {
+          const ns = Math.max(1, dt * 1e9);
+          if (ns < 1e9) { this.frames.JAVA.avg.push(ns); this.frames.JAVA.peak.push(ns); }
+          phase = 'Java Edition'; phaseLabel = SB.EditionConfig.JAVA.cases[this._phaseIdx].label;
+          countdown = Math.max(0, (CASE_MS - elapsed) / 1000); countdownTotal = CASE_MS / 1000;
+          if (elapsed >= CASE_MS) this._finishCase();
+          break;
         }
-        const fps = 1 / Math.max(1e-6, dt);
-        this._emitHud({ fps, work: this.world ? this.world.workCounter : 0, phase: 'Java Edition' });
-        if (elapsed >= CASE_MS) this._finishCase();
-      } else if (this.state === 'COOLDOWN') {
-        if (elapsed >= COOLDOWN_MS) { this._enterEdition('BEDROCK'); this.state = 'BEDROCK_RUN'; }
-      } else if (this.state === 'BEDROCK_RUN') {
-        const ns = Math.max(1, dt * 1e9);
-        if (ns < 1e9) {
-          this.frames.BEDROCK.avg.push(ns);
-          this.frames.BEDROCK.peak.push(ns);
+        case 'COOLDOWN':
+          phase = '冷却判定'; phaseLabel = '仅观测 · 不锁频';
+          countdown = Math.max(0, (COOLDOWN_MS - elapsed) / 1000); countdownTotal = COOLDOWN_MS / 1000;
+          if (elapsed >= COOLDOWN_MS) { this._enterEdition('BEDROCK'); this.state = 'BEDROCK_RUN'; }
+          break;
+        case 'BEDROCK_RUN': {
+          const ns = Math.max(1, dt * 1e9);
+          if (ns < 1e9) { this.frames.BEDROCK.avg.push(ns); this.frames.BEDROCK.peak.push(ns); }
+          phase = 'Bedrock Edition'; phaseLabel = SB.EditionConfig.BEDROCK.cases[this._phaseIdx].label;
+          countdown = Math.max(0, (CASE_MS - elapsed) / 1000); countdownTotal = CASE_MS / 1000;
+          if (elapsed >= CASE_MS) this._finishCase();
+          break;
         }
-        const fps = 1 / Math.max(1e-6, dt);
-        this._emitHud({ fps, work: this.world ? this.world.workCounter : 0, phase: 'Bedrock Edition' });
-        if (elapsed >= CASE_MS) this._finishCase();
+      }
+
+      // state 变为 DONE 时本帧不再回写 HUD，避免覆盖 DONE 回调里隐藏倒计时的操作
+      if (countdown !== null && this.state !== 'DONE') {
+        this._emitHud({ fps, work, phase, countdown, countdownTotal, phaseLabel });
       }
       this.raf = requestAnimationFrame(this._loop);
     };
