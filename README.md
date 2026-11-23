@@ -1,6 +1,18 @@
 # StarBench · 星穹旅驿一键等效负载跑分
 
+<p align="center">
+  <img src="assets/images/banner.png" alt="StarBench 宣传图" width="820">
+</p>
+
+
 > **星穹旅驿官方出品** · Android 平台「我的世界等效负载」一键自动跑分 App。
+
+## 效果预览
+
+<p align="center">
+  <img src="assets/images/demo.png" alt="StarBench 演示图" width="720">
+</p>
+
 
 ## ✅ 可下载 APK（基于 Android 9）
 
